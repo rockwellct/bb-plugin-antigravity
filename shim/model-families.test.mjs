@@ -77,6 +77,20 @@ test("the cache seeds a new catalog", () => {
   assert.equal(second.compose("opus-5.5", "low"), "opus-5.5-low");
 });
 
+test("the catalog refreshes from the CLI when the adapter has no model option", () => {
+  const cachePath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "agy-models-")), "m.json");
+  const catalog = new ModelCatalog({
+    cachePath,
+    listModels: () => "gemini-4-neon-high\tGemini 4 Neon (High)\n",
+  });
+  catalog.loadCache();
+  catalog.learn([{ id: "mode", options: [{ value: "default", name: "Standard" }] }]);
+  assert.equal(catalog.buildOptions("auto", "high"), null);
+  catalog.refreshFromCli();
+  const built = catalog.buildOptions(catalog.families[0].id, "high");
+  assert.deepEqual(built.model.options, [{ value: "gemini-4-neon", name: "Gemini 4 Neon" }]);
+});
+
 test("parseAgyModelsOutput reads tab or space separated rows past the spinner", () => {
   const out = "\r⠋ Fetching available models...\rauto                Gemini Pro Next\nopus-5.5-max\tClaude Opus 5.5 (Max)\n";
   assert.deepEqual(parseAgyModelsOutput(out), [

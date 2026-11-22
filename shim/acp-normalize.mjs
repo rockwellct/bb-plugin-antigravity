@@ -109,6 +109,10 @@ const pendingRequests = new Map();
 
 function buildCleanConfigOptions(existingOptions = []) {
   catalog.learn(existingOptions);
+  if (catalog.families.length === 0) catalog.refreshFromCli();
+  if (catalog.families.length > 0 && !catalog.find(activeFamilyId)) {
+    activeFamilyId = catalog.families[0].id;
+  }
   const built = catalog.buildOptions(activeFamilyId, activeEffort);
   // Nothing learned yet: show the adapter's own list rather than an empty one.
   if (!built) return existingOptions;
