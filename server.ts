@@ -434,8 +434,11 @@ function adapterLaunchPath(entry: {
   command: string;
   args?: string[];
 }): string {
-  const shimmed = entry.command.includes("antigravity-acp-shim");
-  if (shimmed) return entry.args?.[0] ?? entry.command;
+  const launchParts = [entry.command, ...(entry.args ?? [])];
+  const shimIndex = launchParts.findIndex((part) =>
+    part.includes("antigravity-acp-shim"),
+  );
+  if (shimIndex >= 0) return launchParts[shimIndex + 1] ?? entry.command;
   return entry.command;
 }
 
@@ -455,12 +458,14 @@ function renderEnable(
     adapterOverride ??
     result.adapterInstall?.path ??
     adapterLaunchPath(result.entry);
-  const shimmed = result.entry.command.includes("antigravity-acp-shim");
+  const shimPath = [result.entry.command, ...(result.entry.args ?? [])].find(
+    (part) => part.includes("antigravity-acp-shim"),
+  );
   const lines = [
     `Registered ${result.providerId} in ${result.configPath}`,
     `  adapter   ${adapter}`,
     ...(result.adapterInstall?.downloaded ? ["  adapter   downloaded"] : []),
-    ...(shimmed ? [`  shim      ${result.entry.command}`] : []),
+    ...(shimPath ? [`  shim      ${shimPath}`] : []),
     `  AGY_BIN   ${result.entry.env?.AGY_BIN}`,
     result.pickerWrote === false
       ? "  picker    already listed"

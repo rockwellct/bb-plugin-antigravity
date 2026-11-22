@@ -189,6 +189,12 @@ export function buildLaunchCommand(
   if (!shimPath) {
     throw new Error("compatibilityShim is on but the shim is not installed.");
   }
+  if (process.platform === "win32") {
+    return {
+      command: resolved.nodePath ?? "node",
+      args: [shimPath, adapterPath],
+    };
+  }
   return { command: shimPath, args: [adapterPath] };
 }
 
@@ -331,15 +337,19 @@ export async function readStatus(
 
   if (entry) {
     const drift: string[] = [];
+    const launchParts = [entry.command, ...(entry.args ?? [])];
+    const shimIndex = launchParts.findIndex((part) =>
+      part.includes("antigravity-acp-shim"),
+    );
     const registeredAdapter = options.compatibilityShim
-      ? (entry.command.includes("antigravity-acp-shim") ? entry.args?.[0] : entry.args?.[1])
+      ? (shimIndex >= 0 ? launchParts[shimIndex + 1] : entry.command)
       : entry.command;
     if (resolved.adapterPath && registeredAdapter !== resolved.adapterPath) {
       drift.push(
         `registered adapter is ${registeredAdapter ?? "unset"}, resolved adapter is ${resolved.adapterPath}`,
       );
     }
-    const shimRegistered = entry.command.includes("antigravity-acp-shim") || (entry.args?.length ?? 0) > 0;
+    const shimRegistered = shimIndex >= 0 || (entry.args?.length ?? 0) > 0;
     if (shimRegistered !== options.compatibilityShim) {
       drift.push(
         `compatibility shim is ${shimRegistered ? "registered" : "absent"}, setting is ${options.compatibilityShim}`,
