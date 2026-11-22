@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 // A real stdio peer reproduces an adapter ending after tools without a reply.
 const adapter = `
@@ -30,7 +31,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
 
 for (const scenario of ["recover", "blank", "empty", "cancel", "disabled"]) {
   test(`stdio silent stop: ${scenario}`, { timeout: 5000 }, async (t) => {
-    const child = spawn(process.execPath, [process.env.SHIM_PATH || new URL("./acp-normalize.mjs", import.meta.url).pathname, process.execPath, "-e", adapter], {
+    const child = spawn(process.execPath, [process.env.SHIM_PATH || fileURLToPath(new URL("./acp-normalize.mjs", import.meta.url)), process.execPath, "-e", adapter], {
       env: { ...process.env, SCENARIO: scenario, AGY_ACP_AUTO_CONTINUE: scenario === "disabled" ? "0" : "1" },
       stdio: ["pipe", "pipe", "pipe"],
     });

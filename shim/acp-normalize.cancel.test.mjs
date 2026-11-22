@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 // The first prompt yields, so the shim sends a hidden continue. The continue
 // hangs. BB then cancels. Before this fix a lost reply left BB waiting forever.
@@ -28,7 +29,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
 
 for (const scenario of ["answers", "ignores"]) {
   test(`cancel during a hidden continue: agent ${scenario} cancel`, { timeout: 15000 }, async (t) => {
-    const child = spawn(process.execPath, [new URL("./acp-normalize.mjs", import.meta.url).pathname, process.execPath, "-e", adapter], {
+    const child = spawn(process.execPath, [fileURLToPath(new URL("./acp-normalize.mjs", import.meta.url)), process.execPath, "-e", adapter], {
       env: { ...process.env, SCENARIO: scenario, AGY_ACP_AUTO_CONTINUE: "1" },
       stdio: ["pipe", "pipe", "pipe"],
     });
