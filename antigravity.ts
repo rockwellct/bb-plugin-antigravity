@@ -371,6 +371,19 @@ export async function readStatus(
         `displayName is ${entry.displayName}, setting is ${options.displayName}`,
       );
     }
+    const expectedLaunch = buildLaunchCommand(
+      options,
+      resolved,
+      path.join(dataDir, SHIM_FILE_NAME),
+    );
+    if (
+      entry.command !== expectedLaunch.command ||
+      JSON.stringify(entry.args ?? []) !== JSON.stringify(expectedLaunch.args)
+    ) {
+      drift.push(
+        `launch is ${entry.command} ${(entry.args ?? []).join(" ")}, expected ${expectedLaunch.command} ${expectedLaunch.args.join(" ")}`,
+      );
+    }
     if (drift.length > 0) {
       status.drift = drift.join("; ");
     }
