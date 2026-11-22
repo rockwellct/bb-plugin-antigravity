@@ -25,10 +25,10 @@ import {
   doctor,
   enable,
   readStatus,
+  resolveExecutables,
   syncSkillsToGemini,
 } from "./antigravity.js";
 import { resolveDataDir } from "./config.js";
-import { findExecutable, findFirstExecutable } from "./discover.js";
 import { waitForProviderAcp } from "./provider-ready.js";
 
 const OPTED_OUT_KEY = "optedOut";
@@ -156,10 +156,9 @@ export default async function plugin(bb: BbPluginApi) {
 
   const dataDir = resolveDataDir();
 
-  const [agyPath, adapterPath] = await Promise.all([
-    findExecutable(AGY_BINARY),
-    findFirstExecutable(ADAPTER_BINARIES),
-  ]);
+  const resolvedAtStartup = await resolveExecutables(await options());
+  const agyPath = resolvedAtStartup.agyPath;
+  const adapterPath = resolvedAtStartup.adapterPath;
   if (!agyPath) {
     bb.status.needsConfiguration(
       `Missing ${AGY_BINARY} CLI. Install it with \`curl -fsSL https://antigravity.google/cli/install.sh | bash\`, then reload.`,
