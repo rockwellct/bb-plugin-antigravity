@@ -87,6 +87,9 @@ export async function findNode(
   env: NodeJS.ProcessEnv = process.env,
   home: string = os.homedir(),
 ): Promise<string | undefined> {
+  if (process.platform === "win32") {
+    return process.execPath;
+  }
   const stable = ["/opt/homebrew/bin/node", "/usr/local/bin/node", "/usr/bin/node"];
   for (const candidate of stable) {
     if (await isExecutable(candidate)) {
